@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日塔羅占卜</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100vh;overflow-x:hidden}
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:#060612;
+  color:#e0d7f5;
+  min-height:100vh;
+}
+
+/* 星空背景 */
+.stars-bg{
+  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+}
+.star{
+  position:absolute;border-radius:50%;
+  background:white;animation:twinkle var(--d,3s) infinite alternate;
+}
+@keyframes twinkle{0%{opacity:.1;transform:scale(1)}100%{opacity:.9;transform:scale(1.4)}}
+
+/* 主容器 */
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px 80px}
+
+/* 頂部標題 */
+.hero{text-align:center;margin-bottom:48px}
+.hero-eyebrow{
+  font-size:12px;letter-spacing:4px;color:#7c5cbf;
+  text-transform:uppercase;margin-bottom:16px;
+}
+.hero-title{
+  font-size:clamp(28px,5vw,48px);
+  font-weight:300;color:#e8d8ff;
+  letter-spacing:2px;margin-bottom:12px;
+  text-shadow:0 0 40px rgba(168,85,247,0.4);
+}
+.hero-subtitle{font-size:15px;color:#7c6aaa;line-height:1.7;max-width:480px;margin:0 auto}
+
+/* 日期徽章 */
+.date-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(168,85,247,0.08);
+  border:1px solid rgba(168,85,247,0.2);
+  border-radius:100px;padding:8px 20px;
+  font-size:13px;color:#a87adf;margin-bottom:40px;
+}
+
+/* 指引文字 */
+.guide-text{
+  font-size:14px;color:#6a5a8a;
+  text-align:center;margin-bottom:32px;
+  letter-spacing:1px;
+}
+
+/* 牌組容器 */
+.cards-area{
+  display:flex;justify-content:center;
+  gap:clamp(12px,3vw,28px);flex-wrap:wrap;
+  margin-bottom:48px;
+  perspective:1000px;
+}
+
+/* 單張牌 */
+.tarot-card{
+  width:clamp(100px,18vw,150px);
+  cursor:pointer;
+  transform-style:preserve-3d;
+  transition:transform 0.1s;
+  position:relative;
+}
+.tarot-card.flipped{cursor:default}
+.tarot-card:not(.flipped):hover{
+  transform:translateY(-12px) rotate(-1deg) scale(1.04);
+}
+.tarot-card:not(.flipped):hover .card-glow{opacity:1}
+
+.card-inner{
+  position:relative;
+  width:100%;
+  padding-bottom:175%;
+  transform-style:preserve-3d;
+  transition:transform 0.8s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.tarot-card.flipped .card-inner{transform:rotateY(180deg)}
+
+.card-face,.card-back{
+  position:absolute;inset:0;
+  border-radius:14px;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+/* 牌背 */
+.card-back{
+  background:linear-gradient(145deg,#1a0a3e,#0d0620);
+  border:1px solid rgba(168,85,247,0.35);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.card-back-canvas{position:absolute;inset:0;width:100%;height:100%}
+.card-back-label{
+  position:absolute;bottom:12px;left:0;right:0;
+  text-align:center;font-size:10px;
+  color:rgba(180,130,255,0.5);letter-spacing:2px;
+}
+
+/* 牌面 */
+.card-face{
+  transform:rotateY(180deg);
+  background:linear-gradient(145deg,#120824,#0a0518);
+  border:1px solid rgba(168,85,247,0.4);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:14px 10px;
+  overflow:hidden;
+}
+.card-face-img{
+  width:100%;flex:1;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;overflow:hidden;border-radius:8px;
+}
+.card-face-img img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.card-face-symbol{
+  font-size:clamp(32px,7vw,52px);
+  line-height:1;margin-bottom:4px;
+  filter:drop-shadow(0 0 12px rgba(168,85,247,0.6));
+}
+.card-face-roman{font-size:11px;color:#7c5cbf;letter-spacing:2px;margin-bottom:6px}
+.card-face-name{
+  font-size:clamp(11px,2.5vw,14px);
+  color:#e0d7f5;font-weight:600;
+  text-align:center;letter-spacing:1px;
+}
+.card-face-en{font-size:9px;color:#5a4a7a;margin-top:2px;text-align:center}
+.card-reversed-tag{
+  position:absolute;top:8px;right:8px;
+  background:rgba(255,80,120,0.2);
+  border:1px solid rgba(255,80,120,0.4);
+  border-radius:4px;padding:2px 6px;
+  font-size:9px;color:#ff8aaa;letter-spacing:1px;
+}
+
+/* 牌的光暈 */
+.card-glow{
+  position:absolute;inset:-3px;
+  border-radius:16px;
+  background:transparent;
+  box-shadow:0 0 30px rgba(168,85,247,0.6),0 0 60px rgba(168,85,247,0.2);
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:-1;
+}
+.tarot-card.flipped .card-glow{opacity:1}
+
+/* 結果區 */
+#resultArea{
+  width:100%;max-width:700px;
+  opacity:0;transform:translateY(30px);
+  transition:all 0.8s cubic-bezier(0.23,1,0.32,1);
+  pointer-events:none;
+}
+#resultArea.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+
+.result-divider{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:32px;
+}
+.result-divider::before,.result-divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(168,85,247,0.3),transparent);
+}
+.result-divider span{font-size:20px}
+
+.result-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(168,85,247,0.15);
+  border-radius:20px;padding:32px;
+  margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.result-card::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(168,85,247,0.5),transparent);
+}
+.result-card-header{
+  display:flex;align-items:center;gap:14px;margin-bottom:16px;
+}
+.result-card-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(168,85,247,0.2));
+  border:1px solid rgba(168,85,247,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.result-card-meta{flex:1}
+.result-card-num{font-size:11px;color:#6a5a8a;letter-spacing:2px;margin-bottom:4px}
+.result-card-name{font-size:18px;color:#c8a8ff;font-weight:600}
+.result-card-title{font-size:15px;color:#a890df;margin-bottom:12px;font-weight:500}
+.result-card-content{
+  font-size:14px;color:#b0a0d0;line-height:1.9;
+  white-space:pre-line;
+}
+.result-tip{
+  margin-top:16px;
+  padding:12px 16px;
+  background:rgba(168,85,247,0.06);
+  border-left:3px solid #a855f7;
+  border-radius:0 8px 8px 0;
+  font-size:13px;color:#9870cf;
+  line-height:1.7;
+}
+
+/* 底部 CTA */
+.cta-area{
+  text-align:center;margin-top:40px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.cta-hint{font-size:13px;color:#6a5a8a;margin-bottom:4px}
+.btn-primary{
+  padding:14px 36px;border-radius:100px;border:none;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:white;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .3s;
+  box-shadow:0 4px 24px rgba(120,60,237,0.35);
+  letter-spacing:1px;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(120,60,237,0.5)}
+.btn-secondary{
+  padding:12px 28px;border-radius:100px;
+  border:1px solid rgba(168,85,247,0.35);
+  background:transparent;color:#c8a8ff;
+  font-size:14px;cursor:pointer;transition:all .3s;
+  letter-spacing:1px;
+}
+.btn-secondary:hover{background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.6)}
+
+/* 未設定狀態 */
+.empty-state{
+  text-align:center;padding:60px 20px;
+  color:#5a4a7a;
+}
+.empty-state .empty-icon{font-size:48px;margin-bottom:16px}
+.empty-state h3{font-size:18px;color:#7c6aaa;margin-bottom:8px}
+.empty-state p{font-size:14px;line-height:1.7}
+
+/* 載入動畫 */
+.loading{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;padding:40px;color:#6a5a8a;font-size:14px;
+}
+.loading-dot{
+  width:8px;height:8px;border-radius:50%;background:#7c3aed;
+  animation:loadBounce 1.2s infinite;
+}
+.loading-dot:nth-child(2){animation-delay:.2s}
+.loading-dot:nth-child(3){animation-delay:.4s}
+@keyframes loadBounce{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* RWD */
+@media(max-width:600px){
+  .page{padding:24px 14px 60px}
+  .hero{margin-bottom:28px}
+  .result-card{padding:20px}
+  .cards-area{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="stars-bg" id="starsContainer"></div>
+
+<div class="page">
+  <div class="hero">
+    <div class="hero-eyebrow">✦ DAILY TAROT ✦</div>
+    <h1 class="hero-title" id="heroTitle">每日塔羅占卜</h1>
+    <p class="hero-subtitle" id="heroSubtitle">今日星盤為你揭示命運的訊息</p>
+  </div>
+
+  <div class="date-badge">
+    🌙 <span id="todayDateLabel"></span>
+  </div>
+
+  <div id="mainContent">
+    <div class="loading">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCcFD0TCR48YlCTcaYk_5MmGwMVCoT2cgU",
+  authDomain: "tarot-test-10961.firebaseapp.com",
+  projectId: "tarot-test-10961",
+  storageBucket: "tarot-test-10961.firebasestorage.app",
+  messagingSenderId: "333886765161",
+  appId: "1:333886765161:web:3a037dd5559b2b06204af8"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 星空
+function makeStars(){
+  const c = document.getElementById('starsContainer');
+  for(let i=0;i<160;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2.5+0.5;
+    s.style.cssText=`
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;
+      animation-delay:${Math.random()*4}s;
+      opacity:${Math.random()*0.6+0.1};
+    `;
+    c.appendChild(s);
+  }
+}
+makeStars();
+
+// 今日日期
+function getTodayStr(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatDisplayDate(str){
+  const [y,m,d]=str.split('-');
+  return `${y} 年 ${m} 月 ${d} 日`;
+}
+
+const todayStr = getTodayStr();
+document.getElementById('todayDateLabel').textContent = formatDisplayDate(todayStr);
+
+// 牌面符號對應
+const CARD_SYMBOLS = {
+  "大阿爾卡那":["☀️","🌙","⭐","🔮","🌟","✨","🌙","⚡","🌿","🏔️","🎡","⚖️","🌀","💀","🌊","😈","🗼","💫","🌑","🌞","🔔","🌍"],
+  "default":"🎴"
+};
+function getSymbol(card){
+  if(card.symbol) return card.symbol;
+  return "🎴";
+}
+
+// 繪製牌背 Canvas
+function drawCardBack(canvas){
+  const ctx=canvas.getContext('2d');
+  const w=canvas.offsetWidth||150;
+  const h=canvas.offsetHeight||260;
+  canvas.width=w; canvas.height=h;
+  // 背景
+  const bg=ctx.createLinearGradient(0,0,w,h);
+  bg.addColorStop(0,'#1a0a3e');
+  bg.addColorStop(1,'#0d0620');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  // 邊框
+  ctx.strokeStyle='rgba(168,85,247,0.4)';
+  ctx.lineWidth=1.5;
+  ctx.strokeRect(6,6,w-12,h-12);
+  ctx.strokeStyle='rgba(168,85,247,0.15)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(10,10,w-20,h-20);
+  // 中心月亮
+  const cx=w/2, cy=h/2;
+  ctx.save();
+  ctx.shadowColor='rgba(168,85,247,0.8)';
+  ctx.shadowBlur=20;
+  ctx.font=`${Math.min(w,h)*0.22}px serif`;
+  ctx.fillStyle='rgba(200,168,255,0.7)';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('☽',cx,cy);
+  ctx.restore();
+  // 星點
+  for(let i=0;i<18;i++){
+    const ang=Math.PI*2*i/18;
+    const r=Math.min(w,h)*0.35;
+    const x=cx+Math.cos(ang)*r;
+    const y=cy+Math.sin(ang)*r;
+    ctx.fillStyle='rgba(200,168,255,0.4)';
+    ctx.beginPath();
+    ctx.arc(x,y,1.5,0,Math.PI*2);
+    ctx.fill();
+  }
+  // 底部文字
+  ctx.font=`${w*0.07}px serif`;
+  ctx.fillStyle='rgba(168,85,247,0.35)';
+  ctx.textAlign='center';
+  ctx.textBaseline='bottom';
+  ctx.fillText('✦ TAROT ✦',cx,h-10);
+}
+
+let todayData = null;
+let flippedCount = 0;
+
+async function loadTodayData(){
+  try {
+    const docRef = doc(db,'tarot',todayStr);
+    const snap = await getDoc(docRef);
+    if(snap.exists()){
+      todayData = snap.data();
+      // 更新品牌
+      if(todayData.brand){
+        if(todayData.brand.title) document.getElementById('heroTitle').textContent=todayData.brand.title;
+        if(todayData.brand.subtitle) document.getElementById('heroSubtitle').textContent=todayData.brand.subtitle;
+        document.title = todayData.brand.title || '每日塔羅占卜';
+      }
+      renderCards();
+    } else {
+      renderEmpty();
+    }
+  } catch(e) {
+    console.error(e);
+    renderEmpty('連線異常，請稍後重試');
+  }
+}
+
+function renderEmpty(msg='今日牌陣尚未設定，請稍後再來 🌙'){
+  document.getElementById('mainContent').innerHTML=`
+    <div class="empty-state">
+      <div class="empty-icon">🌑</div>
+      <h3>今日尚未開牌</h3>
+      <p>${msg}</p>
+    </div>`;
+}
+
+function renderCards(){
+  const cards = todayData.cards || [];
+  const count = cards.length;
+  flippedCount = 0;
+
+  let html = `<p class="guide-text">✦ 靜下心來，點選一張牌 ✦</p>
+  <div class="cards-area" id="cardsArea">`;
+
+  cards.forEach((card,i)=>{
+    html += `
+    <div class="tarot-card" id="card-${i}" onclick="flipCard(${i})">
+      <div class="card-glow"></div>
+      <div class="card-inner">
+        <div class="card-back">
+          anvas class="card-back-canvas" id="canvas-${i}"></canvas>
+          <div class="card-back-label">✦ TAROT ✦</div>
+        </div>
+        <div class="card-face">
+          ${card.image ? `<div class="card-face-img"><img src="${card.image}" alt="${card.cardName||''}" /></div>` :
+            `<div class="card-face-symbol">${card.emoji||'🎴'}</div>`}
+          <div class="card-face-roman">${card.symbol||''}</div>
+          <div class="card-face-name">${card.cardName||'塔羅牌'}</div>
+          <div class="card-face-en">${card.cardEn||''}</div>
+          ${card.reversed?'<div class="card-reversed-tag">逆位</div>':''}
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>
+  <div id="resultArea">
+    <div class="result-divider"><span>✦</span></div>
+    <div id="resultCards"></div>
+    <div class="cta-area" id="ctaArea" style="display:none">
+      <p class="cta-hint" id="footerHintText"></p>
+      <button class="btn-primary" id="bookingBtn" onclick="goBooking()" style="display:none"></button>
+      <button class="btn-secondary" onclick="resetCards()">🔄 再抽一次</button>
+    </div>
+  </div>`;
+
+  document
