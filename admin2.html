@@ -130,3 +130,288 @@ header{background:rgba(20,10,40,0.95);border-bottom:1px solid rgba(180,130,255,0
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCcFD0TCR48YlCTcaYk_5MmGwMVCoT2cgU",
+  authDomain: "tarot-test-10961.firebaseapp.com",
+  projectId: "tarot-test-10961",
+  storageBucket: "tarot-test-10961.firebasestorage.app",
+  messagingSenderId: "333886765161",
+  appId: "1:333886765161:web:3a037dd5559b2b06204af8"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const CARDS = [
+  {name:"愚者",en:"The Fool",suit:"大阿爾卡那",symbol:"0"},{name:"魔術師",en:"The Magician",suit:"大阿爾卡那",symbol:"I"},
+  {name:"女祭司",en:"The High Priestess",suit:"大阿爾卡那",symbol:"II"},{name:"女皇",en:"The Empress",suit:"大阿爾卡那",symbol:"III"},
+  {name:"皇帝",en:"The Emperor",suit:"大阿爾卡那",symbol:"IV"},{name:"教皇",en:"The Hierophant",suit:"大阿爾卡那",symbol:"V"},
+  {name:"戀人",en:"The Lovers",suit:"大阿爾卡那",symbol:"VI"},{name:"戰車",en:"The Chariot",suit:"大阿爾卡那",symbol:"VII"},
+  {name:"力量",en:"Strength",suit:"大阿爾卡那",symbol:"VIII"},{name:"隱士",en:"The Hermit",suit:"大阿爾卡那",symbol:"IX"},
+  {name:"命運之輪",en:"Wheel of Fortune",suit:"大阿爾卡那",symbol:"X"},{name:"正義",en:"Justice",suit:"大阿爾卡那",symbol:"XI"},
+  {name:"吊人",en:"The Hanged Man",suit:"大阿爾卡那",symbol:"XII"},{name:"死神",en:"Death",suit:"大阿爾卡那",symbol:"XIII"},
+  {name:"節制",en:"Temperance",suit:"大阿爾卡那",symbol:"XIV"},{name:"惡魔",en:"The Devil",suit:"大阿爾卡那",symbol:"XV"},
+  {name:"塔",en:"The Tower",suit:"大阿爾卡那",symbol:"XVI"},{name:"星星",en:"The Star",suit:"大阿爾卡那",symbol:"XVII"},
+  {name:"月亮",en:"The Moon",suit:"大阿爾卡那",symbol:"XVIII"},{name:"太陽",en:"The Sun",suit:"大阿爾卡那",symbol:"XIX"},
+  {name:"審判",en:"Judgement",suit:"大阿爾卡那",symbol:"XX"},{name:"世界",en:"The World",suit:"大阿爾卡那",symbol:"XXI"},
+  {name:"權杖王牌",en:"Ace of Wands",suit:"權杖",symbol:"A"},{name:"權杖二",en:"Two of Wands",suit:"權杖",symbol:"II"},
+  {name:"權杖三",en:"Three of Wands",suit:"權杖",symbol:"III"},{name:"權杖四",en:"Four of Wands",suit:"權杖",symbol:"IV"},
+  {name:"權杖五",en:"Five of Wands",suit:"權杖",symbol:"V"},{name:"權杖六",en:"Six of Wands",suit:"權杖",symbol:"VI"},
+  {name:"權杖七",en:"Seven of Wands",suit:"權杖",symbol:"VII"},{name:"權杖八",en:"Eight of Wands",suit:"權杖",symbol:"VIII"},
+  {name:"權杖九",en:"Nine of Wands",suit:"權杖",symbol:"IX"},{name:"權杖十",en:"Ten of Wands",suit:"權杖",symbol:"X"},
+  {name:"權杖侍者",en:"Page of Wands",suit:"權杖",symbol:"P"},{name:"權杖騎士",en:"Knight of Wands",suit:"權杖",symbol:"Kn"},
+  {name:"權杖王后",en:"Queen of Wands",suit:"權杖",symbol:"Q"},{name:"權杖國王",en:"King of Wands",suit:"權杖",symbol:"K"},
+  {name:"聖杯王牌",en:"Ace of Cups",suit:"聖杯",symbol:"A"},{name:"聖杯二",en:"Two of Cups",suit:"聖杯",symbol:"II"},
+  {name:"聖杯三",en:"Three of Cups",suit:"聖杯",symbol:"III"},{name:"聖杯四",en:"Four of Cups",suit:"聖杯",symbol:"IV"},
+  {name:"聖杯五",en:"Five of Cups",suit:"聖杯",symbol:"V"},{name:"聖杯六",en:"Six of Cups",suit:"聖杯",symbol:"VI"},
+  {name:"聖杯七",en:"Seven of Cups",suit:"聖杯",symbol:"VII"},{name:"聖杯八",en:"Eight of Cups",suit:"聖杯",symbol:"VIII"},
+  {name:"聖杯九",en:"Nine of Cups",suit:"聖杯",symbol:"IX"},{name:"聖杯十",en:"Ten of Cups",suit:"聖杯",symbol:"X"},
+  {name:"聖杯侍者",en:"Page of Cups",suit:"聖杯",symbol:"P"},{name:"聖杯騎士",en:"Knight of Cups",suit:"聖杯",symbol:"Kn"},
+  {name:"聖杯王后",en:"Queen of Cups",suit:"聖杯",symbol:"Q"},{name:"聖杯國王",en:"King of Cups",suit:"聖杯",symbol:"K"},
+  {name:"寶劍王牌",en:"Ace of Swords",suit:"寶劍",symbol:"A"},{name:"寶劍二",en:"Two of Swords",suit:"寶劍",symbol:"II"},
+  {name:"寶劍三",en:"Three of Swords",suit:"寶劍",symbol:"III"},{name:"寶劍四",en:"Four of Swords",suit:"寶劍",symbol:"IV"},
+  {name:"寶劍五",en:"Five of Swords",suit:"寶劍",symbol:"V"},{name:"寶劍六",en:"Six of Swords",suit:"寶劍",symbol:"VI"},
+  {name:"寶劍七",en:"Seven of Swords",suit:"寶劍",symbol:"VII"},{name:"寶劍八",en:"Eight of Swords",suit:"寶劍",symbol:"VIII"},
+  {name:"寶劍九",en:"Nine of Swords",suit:"寶劍",symbol:"IX"},{name:"寶劍十",en:"Ten of Swords",suit:"寶劍",symbol:"X"},
+  {name:"寶劍侍者",en:"Page of Swords",suit:"寶劍",symbol:"P"},{name:"寶劍騎士",en:"Knight of Swords",suit:"寶劍",symbol:"Kn"},
+  {name:"寶劍王后",en:"Queen of Swords",suit:"寶劍",symbol:"Q"},{name:"寶劍國王",en:"King of Swords",suit:"寶劍",symbol:"K"},
+  {name:"錢幣王牌",en:"Ace of Pentacles",suit:"錢幣",symbol:"A"},{name:"錢幣二",en:"Two of Pentacles",suit:"錢幣",symbol:"II"},
+  {name:"錢幣三",en:"Three of Pentacles",suit:"錢幣",symbol:"III"},{name:"錢幣四",en:"Four of Pentacles",suit:"錢幣",symbol:"IV"},
+  {name:"錢幣五",en:"Five of Pentacles",suit:"錢幣",symbol:"V"},{name:"錢幣六",en:"Six of Pentacles",suit:"錢幣",symbol:"VI"},
+  {name:"錢幣七",en:"Seven of Pentacles",suit:"錢幣",symbol:"VII"},{name:"錢幣八",en:"Eight of Pentacles",suit:"錢幣",symbol:"VIII"},
+  {name:"錢幣九",en:"Nine of Pentacles",suit:"錢幣",symbol:"IX"},{name:"錢幣十",en:"Ten of Pentacles",suit:"錢幣",symbol:"X"},
+  {name:"錢幣侍者",en:"Page of Pentacles",suit:"錢幣",symbol:"P"},{name:"錢幣騎士",en:"Knight of Pentacles",suit:"錢幣",symbol:"Kn"},
+  {name:"錢幣王后",en:"Queen of Pentacles",suit:"錢幣",symbol:"Q"},{name:"錢幣國王",en:"King of Pentacles",suit:"錢幣",symbol:"K"}
+];
+
+// 密碼管理
+let ADMIN_PWD = localStorage.getItem('adminPwd') || 'tarot2024';
+let cardCount = 3;
+let cardImages = {};
+
+// 登入
+document.getElementById('loginBtn').onclick = doLogin;
+document.getElementById('pwdInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogin(){
+  const val = document.getElementById('pwdInput').value;
+  if(val === ADMIN_PWD){
+    sessionStorage.setItem('adminLoggedIn','1');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('adminApp').style.display='block';
+    init();
+  } else {
+    document.getElementById('loginError').style.display='block';
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('adminLoggedIn');
+  location.reload();
+}
+document.getElementById('logoutBtn').onclick = doLogout;
+
+// 初始化
+function init(){
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0];
+  document.getElementById('dateInput').value = dateStr;
+  document.querySelectorAll('.count-btn').forEach(btn=>{
+    btn.onclick = ()=>{ cardCount=parseInt(btn.dataset.n); setActiveCount(cardCount); renderCards(); };
+  });
+  renderCards();
+  loadHistory();
+  document.getElementById('saveBtn').onclick = saveToday;
+}
+
+function setActiveCount(n){
+  document.querySelectorAll('.count-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.n)===n);
+  });
+}
+
+// 渲染牌卡設定區
+function renderCards(){
+  const container = document.getElementById('cardsContainer');
+  container.innerHTML='';
+  for(let i=0;iardCount;i++){
+    const div=document.createElement('div');
+    div.className='card-config';
+    div.innerHTML=`
+      <div class="card-header">
+        <div class="card-badge">${i+1}</div>
+        <div class="card-title-label">第 ${i+1} 張牌</div>
+      </div>
+      <div class="upload-area ${cardImages[i]?'has-img':''}" id="uploadArea${i}">
+        <button class="remove-img" onclick="removeImg(${i},event)">✕</button>
+        ${cardImages[i]?`<img src="${cardImages[i]}" id="previewImg${i}"/>`:`<div><div style="font-size:28px;margin-bottom:8px">🖼️</div><div class="upload-hint">點擊上傳牌面圖片（可略過）</div></div>`}
+        <input type="file" accept="image/*" onchange="handleImg(${i},this)"/>
+      </div>
+      <div class="card-search">
+        <input type="text" placeholder="搜尋牌名..." id="searchInput${i}" oninput="searchCard(${i})" onfocus="openDropdown(${i})" autocomplete="off"/>
+        <div class="dropdown" id="dropdown${i}"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        abel>牌面標題（給使用者看）</label>
+        <input type="text" id="cardTitle${i}" placeholder="例：今日能量 - 星星"/>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        abel>今日解說內容</label>
+        <textarea id="cardContent${i}" placeholder="輸入今日的塔羅解說..."></textarea>
+      </div>
+      <div class="form-group">
+        abel>小建議 / Tip</label>
+        <input type="text" id="cardTip${i}" placeholder="例：今天適合靜心，避免衝動決定"/>
+      </div>`;
+    container.appendChild(div);
+  }
+  document.addEventListener('click', e=>{
+    for(let i=0;iardCount;i++){
+      const dd=document.getElementById(`dropdown${i}`);
+      const inp=document.getElementById(`searchInput${i}`);
+      if(dd && inp && !dd.contains(e.target) && e.target!==inp) dd.classList.remove('open');
+    }
+  });
+}
+
+window.removeImg = function(i, e){
+  e.stopPropagation();
+  cardImages[i]=null;
+  renderCards();
+};
+
+window.handleImg = function(i, input){
+  const file=input.files[0];
+  if(!file) return;
+  if(file.size>3*1024*1024){ showToast('圖片請小於 3MB','error'); return; }
+  const reader=new FileReader();
+  reader.onload=ev=>{ cardImages[i]=ev.target.result; renderCards(); };
+  reader.readAsDataURL(file);
+};
+
+window.searchCard = function(i){
+  const q=document.getElementById(`searchInput${i}`).value.toLowerCase();
+  const dd=document.getElementById(`dropdown${i}`);
+  const filtered=CARDS.filter(c=>c.name.includes(q)||c.en.toLowerCase().includes(q)||c.suit.includes(q));
+  dd.innerHTML=filtered.slice(0,20).map(c=>`<div class="dropdown-item" onclick="selectCard(${i},'${c.name}','${c.en}','${c.suit}','${c.symbol}')">${c.name}<small>${c.en} · ${c.suit}</small></div>`).join('');
+  dd.classList.add('open');
+};
+
+window.openDropdown = function(i){
+  const q=document.getElementById(`searchInput${i}`).value;
+  if(!q){ document.getElementById(`searchInput${i}`).dispatchEvent(new Event('input')); }
+};
+
+window.selectCard = function(i,name,en,suit,symbol){
+  document.getElementById(`searchInput${i}`).value=name;
+  document.getElementById(`searchInput${i}`).dataset.selected=JSON.stringify({name,en,suit,symbol});
+  document.getElementById(`dropdown${i}`).classList.remove('open');
+};
+
+// 儲存
+async function saveToday(){
+  const date=document.getElementById('dateInput').value;
+  if(!date){ showToast('請選擇日期','error'); return; }
+  const cards=[];
+  for(let i=0;iardCount;i++){
+    const sel=document.getElementById(`searchInput${i}`).dataset.selected;
+    const cardData=sel?JSON.parse(sel):{name:'塔羅牌',en:'Tarot',suit:'',symbol:'✦'};
+    cards.push({
+      cardName:cardData.name, cardEn:cardData.en, suit:cardData.suit, symbol:cardData.symbol,
+      image:cardImages[i]||null,
+      title:document.getElementById(`cardTitle${i}`).value,
+      content:document.getElementById(`cardContent${i}`).value,
+      tip:document.getElementById(`cardTip${i}`).value
+    });
+  }
+  const brand={
+    title:document.getElementById('brandTitle').value,
+    subtitle:document.getElementById('brandSubtitle').value,
+    bookingText:document.getElementById('bookingText').value,
+    bookingUrl:document.getElementById('bookingUrl').value,
+    footerHint:document.getElementById('footerHint').value
+  };
+  try{
+    document.getElementById('saveBtn').disabled=true;
+    document.getElementById('saveBtn').textContent='儲存中...';
+    await setDoc(doc(db,'tarot',date),{cards,brand,updatedAt:new Date().toISOString()});
+    showToast('✅ 今日牌陣已儲存到雲端！','success');
+    loadHistory();
+  } catch(e){
+    showToast('❌ 儲存失敗：'+e.message,'error');
+  } finally{
+    document.getElementById('saveBtn').disabled=false;
+    document.getElementById('saveBtn').textContent='✨ 儲存今日牌陣到雲端';
+  }
+}
+
+// 載入歷史
+async function loadHistory(){
+  try{
+    const snap=await getDocs(collection(db,'tarot'));
+    const list=document.getElementById('historyList');
+    if(snap.empty){ list.innerHTML='<div style="color:#6a5a8a;font-size:13px;padding:12px">尚無記錄</div>'; return; }
+    const docs=[]; snap.forEach(d=>docs.push({id:d.id,...d.data()}));
+    docs.sort((a,b)=>b.id.localeCompare(a.id));
+    list.innerHTML=docs.map(d=>`
+      <div class="history-item" onclick="loadDate('${d.id}')">
+        <div><div class="history-date">📅 ${d.id}</div><div class="history-count">${d.cards?d.cards.length:0} 張牌</div></div>
+        <button class="del-btn" onclick="delDate('${d.id}',event)">🗑</button>
+      </div>`).join('');
+  } catch(e){ console.error(e); }
+}
+
+window.loadDate = async function(dateId){
+  const snap=await getDoc(doc(db,'tarot',dateId));
+  if(!snap.exists()) return;
+  const data=snap.data();
+  document.getElementById('dateInput').value=dateId;
+  cardCount=data.cards.length;
+  setActiveCount(cardCount);
+  cardImages={};
+  data.cards.forEach((c,i)=>{ if(c.image) cardImages[i]=c.image; });
+  renderCards();
+  data.cards.forEach((c,i)=>{
+    const inp=document.getElementById(`searchInput${i}`);
+    if(inp){ inp.value=c.cardName; inp.dataset.selected=JSON.stringify({name:c.cardName,en:c.cardEn,suit:c.suit,symbol:c.symbol}); }
+    const t=document.getElementById(`cardTitle${i}`); if(t) t.value=c.title||'';
+    const ct=document.getElementById(`cardContent${i}`); if(ct) ct.value=c.content||'';
+    const tip=document.getElementById(`cardTip${i}`); if(tip) tip.value=c.tip||'';
+  });
+  if(data.brand){
+    document.getElementById('brandTitle').value=data.brand.title||'';
+    document.getElementById('brandSubtitle').value=data.brand.subtitle||'';
+    document.getElementById('bookingText').value=data.brand.bookingText||'';
+    document.getElementById('bookingUrl').value=data.brand.bookingUrl||'';
+    document.getElementById('footerHint').value=data.brand.footerHint||'';
+  }
+  showToast('已載入 '+dateId+' 的資料','success');
+};
+
+window.delDate = async function(dateId, e){
+  e.stopPropagation();
+  if(!confirm('確定刪除 '+dateId+' 的牌陣？')) return;
+  await deleteDoc(doc(db,'tarot',dateId));
+  showToast('已刪除','success');
+  loadHistory();
+};
+
+// Toast
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// 自動登入檢查
+if(sessionStorage.getItem('adminLoggedIn')==='1'){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('adminApp').style.display='block';
+  init();
+}
+</script>
+</body>
+</html>
