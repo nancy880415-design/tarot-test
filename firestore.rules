@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// ⚠️ 注意：因為採用「前端共用密碼」保護，Firestore 規則必須允許任何人寫入 tarot_readings。
+// 真正的安全屏障在 admin.html 的密碼門。如果想要更安全，請改用 Firebase Auth + 限制 UID。
+//
+// 部署方法：
+//   1. Firebase Console → Firestore Database → 規則
+//   2. 把整個檔案內容貼上去，發布
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 塔羅牌陣集合：任何人都可以讀，任何人都可以寫
+    // （實際保護由 admin.html 密碼門擋下）
+    match /tarot_readings/{date} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 預設拒絕其他所有路徑
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

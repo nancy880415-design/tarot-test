@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>塔羅後台管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f0ff;--surface:#fff;--surface2:#faf7ff;
+  --border:rgba(140,110,210,.22);--border2:rgba(140,110,210,.38);
+  --text:#1e1640;--muted:#6b5f85;--faint:#b0a8c8;
+  --primary:#6b3fc0;--primary-h:#5530a0;
+  --danger:#c0446a;--success:#3a7a1e;
+  --shadow:0 4px 20px rgba(100,60,180,.1);
+}
+html,body{min-height:100%;background:var(--bg);font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text)}
+.topbar{background:linear-gradient(120deg,#1e1040,#2e1870);padding:1rem 1.5rem;display:flex;align-items:center;gap:.9rem;box-shadow:0 4px 24px rgba(30,16,64,.4)}
+.tl{font-family:'Cinzel',serif;font-size:17px;color:#e8d8ff;letter-spacing:.1em;text-shadow:0 0 16px rgba(180,140,255,.4)}
+.ts{font-size:11px;color:rgba(180,155,255,.55);letter-spacing:.08em}
+.tb{margin-left:auto;font-size:11px;background:rgba(180,140,255,.18);border:1px solid rgba(180,140,255,.3);color:rgba(200,175,255,.8);padding:3px 14px;border-radius:20px}
+
+.shell{max-width:860px;margin:0 auto;padding:1.4rem}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);margin-bottom:1.4rem;overflow:hidden}
+.sh{padding:1rem 1.3rem .85rem;border-bottom:1px solid var(--border);background:var(--surface2)}
+.sh h2{font-size:14.5px;font-weight:700;color:var(--primary)}
+.sh p{font-size:11.5px;color:var(--muted);margin-top:2px}
+.sb{padding:1.2rem 1.3rem}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+label.lbl{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:5px;letter-spacing:.04em}
+input[type="text"],input[type="password"],input[type="date"],input[type="url"],textarea{width:100%;padding:.58rem .8rem;border:1.5px solid var(--border2);border-radius:10px;background:var(--surface);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:13px;outline:none;transition:border-color .18s}
+input:focus,textarea:focus{border-color:var(--primary)}
+textarea{min-height:95px;resize:vertical}
+.help{font-size:11px;color:var(--faint);margin-top:3px}
+
+/* count buttons */
+.count-row{display:flex;gap:.55rem;flex-wrap:wrap}
+.cnt-btn{min-width:40px;min-height:36px;padding:.3rem .85rem;border:1.5px solid var(--border2);border-radius:20px;font-size:13px;font-weight:700;color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .18s}
+.cnt-btn:hover{border-color:var(--primary);color:var(--primary)}
+.cnt-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 10px rgba(107,63,192,.3)}
+
+/* card editors */
+.cards-editor{display:grid;gap:1rem;margin-top:.8rem}
+.ce-item{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.1rem;position:relative}
+.ce-head{display:flex;align-items:center;gap:.7rem;margin-bottom:.9rem}
+.ce-badge{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#a050e8);color:#fff;font-family:'Cinzel',serif;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(107,63,192,.3)}
+.ce-title{font-size:13px;font-weight:700}
+.ce-fields{display:grid;gap:.7rem}
+
+/* card name search */
+.cs-search{margin-bottom:.35rem}
+.cs-search input{padding:.42rem .75rem;font-size:12px}
+.cs-list{max-height:120px;overflow-y:auto;border:1.5px solid var(--border2);border-radius:10px;background:var(--surface)}
+.cs-list button{width:100%;text-align:left;padding:.4rem .75rem;font-size:12px;color:var(--text);background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:.4rem}
+.cs-list button:last-child{border-bottom:none}
+.cs-list button:hover{background:rgba(107,63,192,.07);color:var(--primary)}
+.cs-list button.sel{background:rgba(107,63,192,.12);color:var(--primary);font-weight:700}
+.sel-tag{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .65rem;border-radius:20px;font-size:12px;font-weight:600;background:linear-gradient(120deg,rgba(107,63,192,.13),rgba(160,80,232,.13));border:1px solid rgba(107,63,192,.28);color:var(--primary);margin-top:.45rem}
+
+/* image upload */
+.img-upload-row{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.img-thumb{width:52px;height:83px;border-radius:9px;object-fit:cover;border:1.5px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:22px}
+.img-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.img-actions{display:flex;flex-direction:column;gap:.4rem}
+.img-upload-label{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .9rem;border-radius:20px;font-size:12px;font-weight:700;background:rgba(107,63,192,.1);border:1.5px solid rgba(107,63,192,.28);color:var(--primary);cursor:pointer;transition:background .18s;white-space:nowrap}
+.img-upload-label:hover{background:rgba(107,63,192,.18)}
+.img-clear-btn{padding:.3rem .7rem;border-radius:20px;font-size:11.5px;font-weight:700;background:rgba(192,68,106,.08);border:1.5px solid rgba(192,68,106,.25);color:var(--danger);cursor:pointer;transition:background .18s;display:none}
+.img-clear-btn.show{display:inline-flex;align-items:center;gap:.25rem}
+.img-clear-btn:hover{background:rgba(192,68,106,.15)}
+.img-hint{font-size:11px;color:var(--faint);line-height:1.5}
+
+/* preview strip */
+.prev-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem;padding:1rem;background:linear-gradient(155deg,#1a1040,#2a1460);border-radius:14px}
+.mc{width:72px;background:linear-gradient(155deg,#150f35,#221660 50%,#2e1258);border:1.5px solid rgba(160,130,255,.45);border-radius:13px;padding:.5rem .3rem .4rem;text-align:center;box-shadow:0 4px 14px rgba(60,30,120,.35);overflow:hidden}
+.mc-img{width:100%;aspect-ratio:5/8;object-fit:cover;border-radius:8px;display:block;margin-bottom:3px}
+.mc-sym{font-size:22px;line-height:1;margin-bottom:3px}
+.mc-name{font-size:8px;color:rgba(220,200,255,.7);letter-spacing:.04em;word-break:break-all;line-height:1.3}
+.mc-lbl{font-family:'Cinzel',serif;font-size:8px;color:rgba(180,155,255,.45);letter-spacing:.12em;margin-top:3px}
+
+/* actions */
+.actions{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border)}
+.btn{min-height:40px;padding:.48rem 1.2rem;border-radius:20px;font-size:13px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:none;transition:all .18s}
+.btn-p{background:var(--primary);color:#fff;box-shadow:0 3px 14px rgba(107,63,192,.3)}.btn-p:hover{background:var(--primary-h)}
+.btn-s{background:var(--surface2);border:1.5px solid var(--border2);color:var(--muted)}.btn-s:hover{border-color:var(--primary);color:var(--primary)}
+.btn-d{background:rgba(192,68,106,.1);border:1.5px solid rgba(192,68,106,.28);color:var(--danger)}.btn-d:hover{background:rgba(192,68,106,.18)}
+.status{font-size:12px;margin-top:.55rem;min-height:16px}.ok{color:var(--success)}.err{color:var(--danger)}
+
+/* saved list */
+.saved-list{display:grid;gap:.55rem;margin-top:.75rem}
+.si{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.7rem 1rem;background:var(--surface2);border-radius:12px;border:1px solid var(--border)}
+.si strong{display:block;font-size:13px}.si span{font-size:11px;color:var(--muted)}
+.lb{min-height:34px;padding:.28rem .9rem;border-radius:20px;font-size:12px;font-weight:700;background:rgba(107,63,192,.1);border:1.5px solid rgba(107,63,192,.25);color:var(--primary);cursor:pointer}.lb:hover{background:rgba(107,63,192,.18)}
+.lb-d{background:rgba(192,68,106,.08);border:1.5px solid rgba(192,68,106,.25);color:var(--danger);margin-left:.4rem}.lb-d:hover{background:rgba(192,68,106,.18)}
+.empty{font-size:12px;color:var(--faint);padding:.6rem 0;text-align:center}
+.io-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* login gate */
+.gate{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 80px);padding:1.4rem}
+.gate-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:2rem 1.8rem;max-width:380px;width:100%;text-align:center}
+.gate-icon{font-size:36px;margin-bottom:.5rem}
+.gate-title{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:.3rem}
+.gate-sub{font-size:12px;color:var(--muted);margin-bottom:1.4rem}
+.gate-input{margin-bottom:.8rem;text-align:left}
+
+#app{display:none}
+
+@media(max-width:600px){.shell{padding:1rem}.row2{grid-template-columns:1fr}.actions{flex-direction:column}.btn{width:100%}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="tl">✦ TAROT ADMIN</div><div class="ts">每日塔羅後台管理系統</div></div>
+  <div class="tb">管理者專用</div>
+</div>
+
+<!-- 密碼門 -->
+<div id="gate" class="gate">
+  <div class="gate-box">
+    <div class="gate-icon">🔮</div>
+    <div class="gate-title">後台管理登入</div>
+    <div class="gate-sub">請輸入管理密碼以繼續</div>
+    <div class="gate-input">
+      <label class="lbl">管理密碼</label>
+      <input id="gatePwd" type="password" placeholder="輸入密碼" autocomplete="current-password">
+    </div>
+    <button class="btn btn-p" id="gateBtn" style="width:100%">進入後台</button>
+    <div id="gateStatus" class="status"></div>
+  </div>
+</div>
+
+<!-- 主介面 -->
+<div id="app">
+<div class="shell">
+
+  <!-- 品牌設定 -->
+  <div class="section">
+    <div class="sh"><h2>品牌與聯絡設定</h2><p>這些設定會跟著當天的牌陣一起儲存到雲端，前台會自動讀取。</p></div>
+    <div class="sb">
+      <div class="row2" style="margin-bottom:.8rem">
+        <div><label class="lbl">品牌名稱</label><input id="brandName" type="text" value="每日塔羅" placeholder="前台頂部顯示名稱"></div>
+        <div><label class="lbl">副標語</label><input id="brandSub" type="text" value="今日運勢占卜"></div>
+      </div>
+      <div class="row2" style="margin-bottom:.8rem">
+        <div><label class="lbl">聯絡按鈕文字</label><input id="contactLabel" type="text" value="預約占卜"></div>
+        <div><label class="lbl">聯絡連結（LINE / IG / 表單）</label><input id="contactLink" type="url" placeholder="https://lin.ee/..."></div>
+      </div>
+      <div><label class="lbl">結果頁末段提示文字</label><input id="contactCta" type="text" value="如果你想深入了解更多，歡迎預約一對一占卜 🌙"></div>
+    </div>
+  </div>
+
+  <!-- 牌陣設定 -->
+  <div class="section">
+    <div class="sh"><h2>今日牌陣設定</h2><p>設定日期與張數，依序為每張牌選牌名、上傳圖片（選填）、填寫解說。儲存後會即時同步到雲端。</p></div>
+    <div class="sb">
+      <div class="row2" style="margin-bottom:1.1rem">
+        <div><label class="lbl">日期</label><input id="readingDate" type="date"></div>
+        <div>
+          <label class="lbl">今日張數</label>
+          <div class="count-row" id="countBtns">
+            <button class="cnt-btn" data-n="1">1</button>
+            <button class="cnt-btn active" data-n="2">2</button>
+            <button class="cnt-btn" data-n="3">3</button>
+            <button class="cnt-btn" data-n="4">4</button>
+            <button class="cnt-btn" data-n="5">5</button>
+          </div>
+        </div>
+      </div>
+      <div class="cards-editor" id="cardsEditor"></div>
+      <div style="margin-top:1rem"><label class="lbl">牌背預覽（前台效果）</label><div class="prev-strip" id="prevStrip"></div></div>
+      <div class="actions">
+        <button class="btn btn-p" id="saveBtn">✦ 儲存到雲端</button>
+        <button class="btn btn-s" id="loadTodayBtn">載入今天</button>
+        <button class="btn btn-d" id="clearBtn">清除這一天</button>
+      </div>
+      <div id="saveStatus" class="status"></div>
+    </div>
+  </div>
+
+  <!-- 已儲存 -->
+  <div class="section">
+    <div class="sh"><h2>已儲存的日期（雲端）</h2><p>點「載入」可編輯該日內容，「刪除」會從雲端移除。</p></div>
+    <div class="sb">
+      <div class="io-row">
+        <button class="btn btn-s" id="refreshBtn">🔄 重新整理列表</button>
+        <button class="btn btn-s" id="exportBtn">匯出 JSON</button>
+      </div>
+      <div class="saved-list" id="savedList"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ==================== 設定區 ====================
+// 1. Firebase 設定
+const firebaseConfig = {
+  apiKey: "AIzaSyCcFD0TCR48YlCTcaYk_5MmGwMVCoT2cgU",
+  authDomain: "tarot-test-10961.firebaseapp.com",
+  projectId: "tarot-test-10961",
+  storageBucket: "tarot-test-10961.firebasestorage.app",
+  messagingSenderId: "333886765161",
+  appId: "1:333886765161:web:3a037dd5559b2b06204af8"
+};
+
+// 2. 後台管理密碼（請改成你自己的密碼，建議至少 12 位英數混合）
+const ADMIN_PASSWORD = "tarot-admin-2026";
+
+// 3. Firestore 集合名稱（公開頁面也用同一個，請保持一致）
+const COLLECTION = "tarot_readings";
+// =================================================
+
+firebase.initializeApp(firebaseConfig);
+const fdb = firebase.firestore();
+
+const LABELS=['A','B','C','D','E'];
+const CARD_SYMBOLS={'愚者':'🌟','魔法師':'✨','女祭司':'🌙','女皇':'🌸','皇帝':'👑','教皇':'🕯️','戀人':'💞','戰車':'🏹','力量':'🦁','隱士':'🔦','命運之輪':'🎡','正義':'⚖️','倒吊人':'🌀','死神':'🦋','節制':'💧','惡魔':'🔥','高塔':'⚡','星星':'⭐','月亮':'🌕','太陽':'☀️','審判':'🎺','世界':'🌍'};
+const TAROT_ALL=[
+  '愚者','魔法師','女祭司','女皇','皇帝','教皇','戀人','戰車','力量','隱士','命運之輪','正義','倒吊人','死神','節制','惡魔','高塔','星星','月亮','太陽','審判','世界',
+  '權杖A','權杖2','權杖3','權杖4','權杖5','權杖6','權杖7','權杖8','權杖9','權杖10','權杖侍者','權杖騎士','權杖皇后','權杖國王',
+  '聖杯A','聖杯2','聖杯3','聖杯4','聖杯5','聖杯6','聖杯7','聖杯8','聖杯9','聖杯10','聖杯侍者','聖杯騎士','聖杯皇后','聖杯國王',
+  '寶劍A','寶劍2','寶劍3','寶劍4','寶劍5','寶劍6','寶劍7','寶劍8','寶劍9','寶劍10','寶劍侍者','寶劍騎士','寶劍皇后','寶劍國王',
+  '金幣A','金幣2','金幣3','金幣4','金幣5','金幣6','金幣7','金幣8','金幣9','金幣10','金幣侍者','金幣騎士','金幣皇后','金幣國王'
+];
+function getSymbol(n){if(CARD_SYMBOLS[n])return CARD_SYMBOLS[n];if(n.startsWith('權杖'))return'🔥';if(n.startsWith('聖杯'))return'💧';if(n.startsWith('寶劍'))return'🗡️';if(n.startsWith('金幣'))return'🪙';return'✦'}
+function today(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function setStatus(msg,cls){const el=document.getElementById('saveStatus');el.textContent=msg;el.className='status '+(cls||'')}
+
+// ===== 登入門 =====
+const SESSION_KEY='tarot_admin_unlocked';
+function tryUnlock(){
+  const pwd=document.getElementById('gatePwd').value;
+  const status=document.getElementById('gateStatus');
+  if(pwd===ADMIN_PASSWORD){
+    sessionStorage.setItem(SESSION_KEY,'1');
+    showApp();
+  }else{
+    status.textContent='密碼錯誤，請再試一次';
+    status.className='status err';
+  }
+}
+function showApp(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').style.display='block';
+  initApp();
+}
+document.getElementById('gateBtn').addEventListener('click',tryUnlock);
+document.getElementById('gatePwd').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock()});
+if(sessionStorage.getItem(SESSION_KEY)==='1'){showApp()}
+
+// ===== 主應用程式 =====
+let cardCount=2;
+let cardSelections=[]; // {name, imageData}
+
+function initApp(){
+  document.querySelectorAll('.cnt-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cnt-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      cardCount=parseInt(btn.dataset.n);
+      rebuildEditors();
+    });
+  });
+  document.getElementById('readingDate').value=today();
+  document.getElementById('saveBtn').addEventListener('click',savePayload);
+  document.getElementById('loadTodayBtn').addEventListener('click',()=>loadByDate(document.getElementById('readingDate').value));
+  document.getElementById('clearBtn').addEventListener('click',clearDate);
+  document.getElementById('exportBtn').addEventListener('click',exportJson);
+  document.getElementById('refreshBtn').addEventListener('click',renderSavedList);
+  rebuildEditors();
+  renderSavedList();
+  // 自動載入今天
+  loadByDate(today(),true);
+}
+
+function rebuildEditors(){
+  const prev=cardSelections.slice();
+  cardSelections=Array.from({length:cardCount},(_,i)=>prev[i]||{name:null,imageData:null});
+  renderEditors();renderPreview();
+}
+
+function renderEditors(){
+  const container=document.getElementById('cardsEditor');container.innerHTML='';
+  for(let i=0;i<cardCount;i++){
+    const lbl=LABELS[i];
+    const div=document.createElement('div');div.className='ce-item';div.id='item'+i;
+    div.innerHTML=`
+      <div class="ce-head">
+        <div class="ce-badge">${lbl}</div>
+        <div class="ce-title">第 ${i+1} 張牌設定</div>
+      </div>
+      <div class="ce-fields">
+        <div>
+          <label class="lbl">選擇牌名</label>
+          <div class="cs-search"><input type="text" id="search${i}" placeholder="搜尋牌名…" autocomplete="off"></div>
+          <div class="cs-list" id="list${i}"></div>
+          <div id="selTag${i}"></div>
+        </div>
+
+        <div>
+          <label class="lbl">牌面圖片（選填，建議 < 500KB）</label>
+          <div class="img-upload-row">
+            <div class="img-thumb" id="thumb${i}"><span id="thumbSym${i}">${cardSelections[i]?.name?getSymbol(cardSelections[i].name):'✦'}</span></div>
+            <div class="img-actions">
+              <label class="img-upload-label" for="imgFile${i}">📁 上傳圖片</label>
+              <input type="file" id="imgFile${i}" accept="image/*" class="sr-only">
+              <button class="img-clear-btn" id="imgClear${i}">✕ 移除圖片</button>
+              <div class="img-hint">建議比例 5:8（直向）<br>大圖會自動壓縮</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div><label class="lbl">今日標題</label><input type="text" id="title${i}" placeholder="例如：社交順流，分享讓事情更順"></div>
+          <div><label class="lbl">小建議 tip</label><input type="text" id="tip${i}" placeholder="例如：可以試著放慢步調 🌸"></div>
+        </div>
+        <div><label class="lbl">解說內文（段落間空一行）</label><textarea id="reading${i}" placeholder="今天的牌義解說…"></textarea></div>
+      </div>`;
+    container.appendChild(div);
+
+    buildSelectList(i,cardSelections[i]?.name||null);
+    updateThumb(i);
+
+    document.getElementById('search'+i).addEventListener('input',e=>filterList(i,e.target.value));
+    document.getElementById('imgFile'+i).addEventListener('change',e=>handleImageUpload(i,e));
+    document.getElementById('imgClear'+i).addEventListener('click',()=>clearImage(i));
+  }
+}
+
+function buildSelectList(idx,selected){
+  const list=document.getElementById('list'+idx);list.innerHTML='';
+  TAROT_ALL.forEach(name=>{
+    const btn=document.createElement('button');btn.type='button';
+    btn.innerHTML=`${getSymbol(name)} ${name}`;
+    if(name===selected)btn.classList.add('sel');
+    btn.addEventListener('click',()=>selectCard(idx,name));
+    list.appendChild(btn);
+  });
+}
+
+function filterList(idx,q){
+  const list=document.getElementById('list'+idx);
+  [...list.querySelectorAll('button')].forEach(btn=>{
+    btn.style.display=(!q||btn.textContent.includes(q))?'':'none';
+  });
+}
+
+function selectCard(idx,name){
+  cardSelections[idx]={...cardSelections[idx],name};
+  const list=document.getElementById('list'+idx);
+  [...list.querySelectorAll('button')].forEach(btn=>btn.classList.toggle('sel',btn.textContent.trim().endsWith(name)));
+  const tag=document.getElementById('selTag'+idx);
+  tag.innerHTML=`<div class="sel-tag">${getSymbol(name)} ${name}</div>`;
+  updateThumb(idx);renderPreview();
+}
+
+// 自動壓縮圖片（避免超過 Firestore 1MB 文件上限）
+function compressImage(file,maxW=600,maxH=900,quality=0.82){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        const r=Math.min(maxW/w,maxH/h,1);
+        w=Math.round(w*r);h=Math.round(h*r);
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=reject;img.src=e.target.result;
+    };
+    reader.onerror=reject;reader.readAsDataURL(file);
+  });
+}
+
+async function handleImageUpload(idx,e){
+  const file=e.target.files?.[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('原始圖片請小於 5MB');e.target.value='';return;}
+  try{
+    const dataUrl=await compressImage(file);
+    cardSelections[idx]={...cardSelections[idx],imageData:dataUrl};
+    updateThumb(idx);renderPreview();
+  }catch(err){
+    alert('圖片處理失敗：'+err.message);
+  }
+  e.target.value='';
+}
+
+function clearImage(idx){
+  cardSelections[idx]={...cardSelections[idx],imageData:null};
+  updateThumb(idx);renderPreview();
+}
+
+function updateThumb(idx){
+  const thumbEl=document.getElementById('thumb'+idx);
+  const clearBtn=document.getElementById('imgClear'+idx);
+  const imgData=cardSelections[idx]?.imageData;
+  const name=cardSelections[idx]?.name;
+  if(imgData){
+    thumbEl.innerHTML=`<img src="${imgData}" alt="card">`;
+    clearBtn.classList.add('show');
+  } else {
+    thumbEl.innerHTML=`<span id="thumbSym${idx}">${name?getSymbol(name):'✦'}</span>`;
+    clearBtn.classList.remove('show');
+  }
+}
+
+function renderPreview(){
+  const strip=document.getElementById('prevStrip');strip.innerHTML='';
+  for(let i=0;i<cardCount;i++){
+    const s=cardSelections[i];const lbl=LABELS[i];
+    const mc=document.createElement('div');mc.className='mc';
+    if(s?.imageData){
+      mc.innerHTML=`<img class="mc-img" src="${s.imageData}" alt="${s.name||lbl}"><div class="mc-name">${s.name||'未選'}</div><div class="mc-lbl">${lbl}</div>`;
+    } else {
+      mc.innerHTML=`<div class="mc-sym">${s?.name?getSymbol(s.name):'✦'}</div><div class="mc-name">${s?.name||'未選擇'}</div><div class="mc-lbl">${lbl}</div>`;
+    }
+    strip.appendChild(mc);
+  }
+}
+
+function collectPayload(){
+  const cards=[];
+  for(let i=0;i<cardCount;i++){
+    cards.push({
+      name:cardSelections[i]?.name||'',
+      imageData:cardSelections[i]?.imageData||null,
+      title:document.getElementById('title'+i).value.trim(),
+      tip:document.getElementById('tip'+i).value.trim(),
+      reading:document.getElementById('reading'+i).value.trim(),
+    });
+  }
+  return{
+    date:document.getElementById('readingDate').value,
+    brandName:document.getElementById('brandName').value.trim(),
+    brandSub:document.getElementById('brandSub').value.trim(),
+    contactLabel:document.getElementById('contactLabel').value.trim(),
+    contactLink:document.getElementById('contactLink').value.trim(),
+    contactCta:document.getElementById('contactCta').value.trim(),
+    cardCount,cards,
+    updatedAt:new Date().toISOString()
+  };
+}
+
+function validate(p){
+  if(!p.date)return'請選擇日期';
+  for(let i=0;i<p.cards.length;i++){
+    if(!p.cards[i].name)return`請為 ${LABELS[i]} 選擇牌名`;
+    if(!p.cards[i].title)return`請為 ${LABELS[i]} 填寫標題`;
+    if(!p.cards[i].reading)return`請為 ${LABELS[i]} 填寫解說`;
+  }return'';
+}
+
+async function savePayload(){
+  const p=collectPayload();const err=validate(p);
+  if(err){setStatus(err,'err');return;}
+  setStatus('儲存中…','');
+  try{
+    await fdb.collection(COLLECTION).doc(p.date).set(p);
+    setStatus(`✓ 已儲存到雲端：${p.date}（${p.cardCount} 張）`,'ok');
+    renderSavedList();
+  }catch(err){
+    console.error(err);
+    setStatus('儲存失敗：'+err.message,'err');
+  }
+}
+
+async function loadByDate(date,silent){
+  if(!date)return;
+  if(!silent)setStatus('讀取中…','');
+  let item=null;
+  try{
+    const snap=await fdb.collection(COLLECTION).doc(date).get();
+    if(snap.exists)item=snap.data();
+  }catch(err){
+    setStatus('讀取失敗：'+err.message,'err');return;
+  }
+  if(!item){if(!silent)setStatus(`${date} 還沒有資料`,'err');return;}
+  document.getElementById('readingDate').value=date;
+  document.getElementById('brandName').value=item.brandName||'每日塔羅';
+  document.getElementById('brandSub').value=item.brandSub||'今日運勢占卜';
+  document.getElementById('contactLabel').value=item.contactLabel||'預約占卜';
+  document.getElementById('contactLink').value=item.contactLink||'';
+  document.getElementById('contactCta').value=item.contactCta||'';
+  cardCount=item.cardCount||item.cards?.length||1;
+  document.querySelectorAll('.cnt-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.n)===cardCount));
+  cardSelections=item.cards.map(c=>({name:c.name||null,imageData:c.imageData||null}));
+  renderEditors();
+  item.cards.forEach((c,i)=>{
+    const t=document.getElementById('title'+i);const r=document.getElementById('reading'+i);const tp=document.getElementById('tip'+i);
+    const tag=document.getElementById('selTag'+i);
+    if(t)t.value=c.title||'';if(r)r.value=c.reading||'';if(tp)tp.value=c.tip||'';
+    if(c.name&&tag)tag.innerHTML=`<div class="sel-tag">${getSymbol(c.name)} ${c.name}</div>`;
+  });
+  renderPreview();
+  if(!silent)setStatus(`已載入 ${date}`,'ok');
+}
+
+async function clearDate(){
+  const date=document.getElementById('readingDate').value;
+  if(!date){setStatus('請先選日期','err');return;}
+  if(!confirm(`確定要從雲端刪除 ${date} 的內容嗎？此動作無法復原。`))return;
+  try{
+    await fdb.collection(COLLECTION).doc(date).delete();
+    setStatus(`已刪除 ${date}`,'ok');renderSavedList();
+  }catch(err){
+    setStatus('刪除失敗：'+err.message,'err');
+  }
+}
+
+async function deleteByDate(date){
+  if(!confirm(`確定要從雲端刪除 ${date} 嗎？`))return;
+  try{
+    await fdb.collection(COLLECTION).doc(date).delete();
+    renderSavedList();
+  }catch(err){alert('刪除失敗：'+err.message)}
+}
+
+async function renderSavedList(){
+  const el=document.getElementById('savedList');
+  el.innerHTML='<div class="empty">載入中…</div>';
+  let docs=[];
+  try{
+    const snap=await fdb.collection(COLLECTION).get();
+    snap.forEach(d=>docs.push({date:d.id,data:d.data()}));
+  }catch(err){
+    el.innerHTML=`<div class="empty err">讀取失敗：${err.message}</div>`;return;
+  }
+  docs.sort((a,b)=>b.date.localeCompare(a.date));
+  if(!docs.length){el.innerHTML='<div class="empty">雲端還沒有任何儲存記錄</div>';return;}
+  el.innerHTML=docs.map(({date,data})=>{
+    const names=(data.cards||[]).map(c=>c.name).join('、');
+    return`<div class="si"><div><strong>${date}</strong><span>${data.cardCount||(data.cards||[]).length} 張：${names}</span></div><div><button class="lb" data-d="${date}">載入</button><button class="lb lb-d" data-del="${date}">刪除</button></div></div>`;
+  }).join('');
+  el.querySelectorAll('button[data-d]').forEach(btn=>btn.addEventListener('click',()=>loadByDate(btn.dataset.d)));
+  el.querySelectorAll('button[data-del]').forEach(btn=>btn.addEventListener('click',()=>deleteByDate(btn.dataset.del)));
+}
+
+async function exportJson(){
+  let docs={};
+  try{
+    const snap=await fdb.collection(COLLECTION).get();
+    snap.forEach(d=>docs[d.id]=d.data());
+  }catch(err){alert('匯出失敗：'+err.message);return;}
+  const blob=new Blob([JSON.stringify(docs,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tarot-data-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
